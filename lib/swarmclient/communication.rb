@@ -22,14 +22,14 @@ module Swarmclient
         EM.run {
 
           temp_endpoint = @connected && @_leader_endpoint.present? ? @_leader_endpoint : [@_endpoint, ':', @_port.to_s].join('')
-          @_current_req = @queue.pop { |req| req }
+          @_current_req = @queue.pop Proc.new { |req| req }
           @_web_socket = Faye::WebSocket::Client.new temp_endpoint
 
           @_spawned_process = EM.spawn do |res|
             case res[:error]
             when 'RECORD_EXISTS', 'RECORD_NOT_FOUND', nil
 
-              @_sub_callback(res[:error], response) if @_sub_callback.present?
+              @_sub_callback.call res[:error], res[:data] if @_sub_callback.present?
               @_current_req = nil
               process_next unless @queue.empty?
 
@@ -37,7 +37,6 @@ module Swarmclient
 
               @_web_socket.send @_current_req
 
-            else
             end
           end
 
@@ -53,7 +52,9 @@ module Swarmclient
             Thread.kill @thread
           end
 
-          @_web_socket.on :message { |event| @_spawned_process.notify(event.data) }
+          @_web_socket.on :message do |event|
+            @_spawned_process.notify(event.data)
+          end
 
         }
       }
@@ -105,13 +106,15 @@ module Swarmclient
   private
 
     def send cmd:, data:
-      @queue.push {
-        :"bzn-api" => "crud",
-        :"cmd" => cmd,
-        :"data" => data,
-        :"db-uuid": @_uuid,
-        :"request-id": rand(99)
-      }
+      @queue.push(
+        {
+          "bzn-api": "crud",
+          "cmd": cmd,
+          "data": data,
+          "db-uuid": @_uuid,
+          "request-id": rand(99)
+        }
+      )
     end
 
     def process_next
