@@ -42,7 +42,7 @@ module Swarmclient
           end
 
           @_web_socket.on :open do |event|
-            @_leader_endpoint = new_endpoint
+            @_leader_endpoint = temp_endpoint
             @connected = true
             @_spawned_process.notify event.data
           end
