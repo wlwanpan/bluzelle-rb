@@ -12,13 +12,68 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
+Or build and install from src:
 
-    $ gem install swarmclient
+    $ git clone https://github.com/wlwanpan/swarmclient-rb.git
+    $ gem build swarmclient.gemspec
+    $ gem install swarmclient-0.1.0.gem
 
 ## Usage
 
-TODO: Write usage instructions here
+Require and Initialize
+```
+require 'swarmclient'
+
+bluzelle = Swarmclient::Communication.new endpoint: "ws://127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4cceee"
+```
+
+Note: The uuid is the uniq id of a referenced db hosted in the swarm. Generate a new one to generate a new store. Refer to https://bluzelle.github.io/api/ for more info.
+
+Connect and Subscribe
+```
+bluzelle.connect
+
+bluzelle.subscribe do |err, data|
+    ... your code here
+end
+```
+
+Create Key value pair
+```
+bluzelle.create key: 'myKey', value: 'Your Value'
+```
+
+Read Key
+```
+bluzelle.read 'myKey'
+```
+
+Update Key value
+```
+bluzelle.update 'myKey', 'New Value'
+```
+
+Remove Key
+```
+bluzelle.remove 'myKey'
+```
+
+Check if key exist
+```
+bluzelle.has 'myKey'
+```
+
+Read all keys stored
+```
+bluzelle.keys
+```
+
+Unsubscribe and close websocket
+```
+bluzelle.unsubscribe
+
+bluzelle.close
+```
 
 ## Development
 
@@ -28,7 +83,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/swarmclient. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/wlwanpan/swarmclient-rb. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
@@ -36,4 +91,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Swarmclient project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/swarmclient/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Swarmclient project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/wlwanpan/swarmclient-rb/blob/master/CODE_OF_CONDUCT.md).
