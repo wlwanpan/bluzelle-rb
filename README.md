@@ -33,46 +33,46 @@ Note: The uuid is the uniq id of a referenced db hosted in the swarm.
 Generate a new one to generate a new store.
 Refer to https://bluzelle.github.io/api/ for more info.
 
-- Create New Entry (key-value)
+Create New Entry (key-value)
 ```
 bluzelle.create key: 'myKey', value: 'Your Value'
 ```
 
-- Read Key
+Read Key
 ```
 res = bluzelle.read 'myKey'
 puts res
 ```
-Result
+- Result
 ```
 => {:data=>{:value=>"Your Value"}, :"request-id"=>0.5304515448110283}
 ```
 
-- Update Key value
+Update Key value
 ```
 bluzelle.update 'myKey', 'New Value'
 ```
 
-- Remove Key
+Remove Key
 ```
 bluzelle.remove 'myKey'
 ```
 
-- Check if key exist
+Check if key exist
 ```
 res = bluzelle.has 'myKey'
 puts res
 ```
-Result
+- Result
 ```
 => {:data=>{:"key-exists"=>true}, :"request-id"=>0.7938161241077408}
 ```
 
-- Read all keys stored
+Read all keys stored
 ```
 bluzelle.keys
 ```
-Result
+- Result
 ```
  => {:data=>{:keys=>["myKey"]}, :"request-id"=>0.7472509525271954}
 ```
