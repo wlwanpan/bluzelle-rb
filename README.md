@@ -35,7 +35,7 @@ Refer to https://bluzelle.github.io/api/ for more info.
 
 Create New Entry (key-value)
 ```
-bluzelle.create key: 'myKey', value: 'Your Value'
+bluzelle.create 'myKey', 'Your Value'
 ```
 
 Read Key
