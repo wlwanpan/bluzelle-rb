@@ -123,7 +123,7 @@ module Swarmclient
       return if @_current_req.present?
       @queue.pop do |req|
         @_current_req = req
-        @_web_socket.send(req)
+        @_web_socket.send req.to_json
       end
     end
 
