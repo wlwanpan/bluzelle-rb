@@ -25,7 +25,8 @@ module Swarmclient
           @_current_req = @queue.pop Proc.new { |req| req }
           @_web_socket = Faye::WebSocket::Client.new temp_endpoint
 
-          @_spawned_process = EM.spawn do |res|
+          @_spawned_process = EM.spawn do |raw_res|
+            res = eval raw_res
             case res[:error]
             when 'RECORD_EXISTS', 'RECORD_NOT_FOUND', nil
 
@@ -35,7 +36,7 @@ module Swarmclient
 
             when "NOT_THE_LEADER"
 
-              @_web_socket.send @_current_req
+              @_web_socket.send @_current_req.to_json
 
             end
           end
@@ -49,7 +50,7 @@ module Swarmclient
           @_web_socket.on :close do |event|
             @_web_socket = nil
             @connected = false
-            Thread.kill @thread
+            @thread.join
           end
 
           @_web_socket.on :message do |event|
