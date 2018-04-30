@@ -20,62 +20,66 @@ Or build and install from src:
     $ gem build swarmclient.gemspec
     $ gem install swarmclient-0.1.0.gem
 
-## Usage
+## Communication API (Swarmclient::Communication)
 
 Require and Initialize
 ```
 require 'swarmclient'
 
-bluzelle = Swarmclient::Communication.new endpoint: "ws://127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4cceee"
+bluzelle = Swarmclient::Communication.new endpoint: "ws://127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
 ```
 
-Note: The uuid is the uniq id of a referenced db hosted in the swarm. Generate a new one to generate a new store. Refer to https://bluzelle.github.io/api/ for more info.
+Note: The uuid is the uniq id of a referenced db hosted in the swarm.
+Generate a new one to generate a new store.
+Refer to https://bluzelle.github.io/api/ for more info.
 
-Connect and Subscribe
-```
-bluzelle.connect
-
-bluzelle.subscribe do |err, data|
-    ... your code here
-end
-```
-
-Create Key value pair
+- Create New Entry (key-value)
 ```
 bluzelle.create key: 'myKey', value: 'Your Value'
 ```
 
-Read Key
+- Read Key
 ```
-bluzelle.read 'myKey'
+res = bluzelle.read 'myKey'
+puts res
+```
+Result
+```
+=> {:data=>{:value=>"Your Value"}, :"request-id"=>0.5304515448110283}
 ```
 
-Update Key value
+- Update Key value
 ```
 bluzelle.update 'myKey', 'New Value'
 ```
 
-Remove Key
+- Remove Key
 ```
 bluzelle.remove 'myKey'
 ```
 
-Check if key exist
+- Check if key exist
 ```
-bluzelle.has 'myKey'
+res = bluzelle.has 'myKey'
+puts res
+```
+Result
+```
+=> {:data=>{:"key-exists"=>true}, :"request-id"=>0.7938161241077408}
 ```
 
-Read all keys stored
+- Read all keys stored
 ```
 bluzelle.keys
 ```
-
-Unsubscribe and close websocket
+Result
 ```
-bluzelle.unsubscribe
-
-bluzelle.close
+ => {:data=>{:keys=>["myKey"]}, :"request-id"=>0.7472509525271954}
 ```
+
+## Pubsub (Swarmclient::Pubsub)
+
+For data streaming -> WIP
 
 ## Development
 
