@@ -1,9 +1,8 @@
-require 'faye/websocket'
-require 'eventmachine'
 require 'websocket-client-simple'
+require 'eventmachine'
 require 'json'
 
-DEFAULT_IP = '127.0.0.1'
+DEFAULT_IP = 'ws://127.0.0.1'
 DEFAULT_PORT = 8080
 
 module Swarmclient
@@ -28,8 +27,12 @@ module Swarmclient
       send cmd: 'read', data: { key: key }
     end
 
+    def read_multiple keys
+      send_multiple cmd: 'read', keys: keys
+    end
+
     def update key, value
-      send cmd: 'update', data: { key: key }
+      send cmd: 'update', data: { key: key, value: value }
     end
 
     def remove key
@@ -45,6 +48,13 @@ module Swarmclient
     end
 
   private
+
+    def send_multiple cmd:, keys:
+      keys.map do |key|
+        res = send cmd: cmd, data: { key: key }
+        Hash[key, res ? res[:value] : nil]
+      end
+    end
 
     def send cmd:, data:
 
@@ -73,7 +83,7 @@ module Swarmclient
 
           when nil
 
-            return res
+            return res[:data]
 
           else
 
@@ -89,28 +99,32 @@ module Swarmclient
 
       res, err = [nil, nil]
 
-      EventMachine.run do
+      begin
+        EventMachine.run do
 
-        ws = WebSocket::Client::Simple.connect endpoint
+          ws = WebSocket::Client::Simple.connect endpoint
 
-        ws.on :message do |msg|
-          res = msg.data
-          EventMachine::stop_event_loop
+          ws.on :message do |msg|
+            res = msg.data
+            EventMachine::stop_event_loop
+          end
+
+          ws.on :open do
+            ws.send req.to_json
+          end
+
+          ws.on :close do |e|
+            EventMachine::stop_event_loop
+          end
+
+          ws.on :error do |e|
+            err = e
+            EventMachine::stop_event_loop
+          end
+
         end
-
-        ws.on :open do
-          ws.send req.to_json
-        end
-
-        ws.on :close do |e|
-          EventMachine::stop_event_loop
-        end
-
-        ws.on :error do |e|
-          err = e
-          EventMachine::stop_event_loop
-        end
-
+      rescue => e
+        err = e
       end
 
       [err, res]

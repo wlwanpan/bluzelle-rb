@@ -17,8 +17,9 @@ And then execute:
 Or build and install from src:
 
     $ git clone https://github.com/wlwanpan/swarmclient-rb.git
+    $ cd swarmclient-rb && bundle install
     $ gem build swarmclient.gemspec
-    $ gem install swarmclient-0.1.0.gem
+    $ gem install swarmclient-{GEM_VERSION}.gem
 
 ## Communication API (Swarmclient::Communication)
 
@@ -26,7 +27,7 @@ Require and Initialize
 ```
 require 'swarmclient'
 
-bluzelle = Swarmclient::Communication.new endpoint: "ws://127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
+bluzelle = Swarmclient::Communication.new endpoint: "127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
 ```
 
 Note: The uuid is the uniq id of a referenced db hosted in the swarm.
@@ -40,12 +41,20 @@ bluzelle.create 'myKey', 'Your Value'
 
 Read Key
 ```
-res = bluzelle.read 'myKey'
-puts res
+bluzelle.read 'myKey'
 ```
 - Result
 ```
-=> {:data=>{:value=>"Your Value"}, :"request-id"=>0.5304515448110283}
+{:value => "Your Value"}
+```
+
+Read Multiple Keys
+```
+bluzelle.read ['myKey', 'myKey2']
+```
+- Result
+```
+[{:myKey => "Your Value"}, {:myKey2 => nil}]
 ```
 
 Update Key value
@@ -60,12 +69,11 @@ bluzelle.remove 'myKey'
 
 Check if key exist
 ```
-res = bluzelle.has 'myKey'
-puts res
+bluzelle.has 'myKey'
 ```
 - Result
 ```
-=> {:data=>{:"key-exists"=>true}, :"request-id"=>0.7938161241077408}
+=> {:"key-exists" => true}
 ```
 
 Read all keys stored
@@ -74,7 +82,7 @@ bluzelle.keys
 ```
 - Result
 ```
- => {:data=>{:keys=>["myKey"]}, :"request-id"=>0.7472509525271954}
+ => {:keys => ["myKey"]}
 ```
 
 ## Pubsub (Swarmclient::Pubsub)
