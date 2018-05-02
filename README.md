@@ -27,7 +27,7 @@ Require and Initialize
 ```
 require 'swarmclient'
 
-bluzelle = Swarmclient::Communication.new endpoint: "127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
+bluzelle = Swarmclient::Communication.new endpoint: "ws://127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
 ```
 
 Note: The uuid is the uniq id of a referenced db hosted in the swarm.
