@@ -2,20 +2,22 @@ require 'websocket-client-simple'
 require 'eventmachine'
 require 'json'
 
-DEFAULT_IP = 'ws://127.0.0.1'
-DEFAULT_PORT = 8080
+DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
+DEFAULT_IP = '127.0.0.1'
+DEFAULT_PORT = 51010
 
 module Swarmclient
 
   class Communication
 
-    @req_id_range = 100
+    @req_id_limit = 100
 
-    def initialize endpoint:, port:, uuid:
+    def initialize endpoint:, port:, uuid:, secure: false
 
       @_endpoint = endpoint || DEFAULT_IP
       @_port = port || DEFAULT_PORT
-      @_uuid = uuid
+      @_uuid = uuid || DEFAULT_UUID
+      @_protocol_prefix = secure ? 'wss://' : 'ws://'
 
     end
 
@@ -57,51 +59,38 @@ module Swarmclient
     end
 
     def send cmd:, data:
-
       endpoint, req = [
-        [@_endpoint, ':', @_port.to_s].join(''),
-        { "bzn-api": "crud", "cmd": cmd, "data": data, "db-uuid": @_uuid, "request-id": rand(@req_id_range) }
+        [@_protocol_prefix, @_endpoint, ':', @_port.to_s].join(''),
+        { "bzn-api": "crud", "cmd": cmd, "data": data, "db-uuid": @_uuid, "request-id": rand(@req_id_limit) }
       ]
 
       raw_data = get endpoint: endpoint, req: req
-      err, res = raw_data.map { |data| data ? eval(data.gsub(/\s+/, "")) : false }
+      err = sanitize_req raw_data[0] unless raw_data[0].nil?
+      res = sanitize_req raw_data[1] unless raw_data[1].nil?
 
-      if res
-        case res[:error]
-          when 'NOT_THE_LEADER'
+      return err unless res
+      case res[:error]
+        when 'NOT_THE_LEADER'
+          @_endpoint, @_port = [
+            res[:data][:'leader-host'].to_s,
+            res[:data][:'leader-port']
+          ]
 
-            @_endpoint, @_port = [
-              "ws://#{res[:data][:'leader-host']}",
-              res[:data][:'leader-port']
-            ]
-
-            return send cmd: cmd, data: data
-
-          when "RECORD_EXISTS", "RECORD_NOT_FOUND"
-
-            return res[:error]
-
-          when nil
-
-            return res[:data]
-
-          else
-
-            return res[:error]
-
-          end
-      else
-        return err
-      end
+          return send cmd: cmd, data: data
+        when "RECORD_EXISTS", "RECORD_NOT_FOUND"
+          return res[:error]
+        when nil
+          return res[:data]
+        else
+          return res[:error]
+        end
     end
 
     def get req:, endpoint:
-
       res, err = [nil, nil]
 
       begin
         EventMachine.run do
-
           ws = WebSocket::Client::Simple.connect endpoint
 
           ws.on :message do |msg|
@@ -127,9 +116,13 @@ module Swarmclient
         err = e
       end
 
-      [err, res]
+      return [err, res]
+    end
+
+    def sanitize_req req
+      return unless req.is_a? String
+      eval(req.gsub(/\s+/, ''))
     end
 
   end
-
 end

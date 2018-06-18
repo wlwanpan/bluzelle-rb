@@ -27,11 +27,12 @@ Require and Initialize
 ```
 require 'swarmclient'
 
-bluzelle = Swarmclient::Communication.new endpoint: "127.0.0.1", port: 50001, uuid: "80174b53-2dda-49f1-9d6a-6a780d4"
+bluzelle = Swarmclient::Communication.new endpoint: '127.0.0.1', port: 51010, uuid: '80174b53-2dda-49f1-9d6a-6a780d4'
 ```
 
-Note: The uuid is the uniq id of a referenced db hosted in the swarm.
-Generate a new one to generate a new store.
+Note: The uuid is the unique id of a referenced db hosted in the swarm.
+Generate a new one to generate a new store. The gem will default to:
+8c073d96-7291-11e8-adc0-fa7ae01bbebc' if none is provided.
 Refer to https://bluzelle.github.io/api/ for more info.
 
 Create New Entry (key-value)
