@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+// Bluzelle message definition from:
+// https://github.com/bluzelle/swarmDB/blob/devel/proto/bluzelle.proto
+
+import "database.proto";
+
+message bzn_msg
+{
+    oneof msg {
+        database_msg db = 10;
+        string json = 11;
+    }
+}

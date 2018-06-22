@@ -1,22 +1,29 @@
+require 'google/protobuf'
+require 'base64'
 require 'websocket-client-simple'
 require 'eventmachine'
 require 'json'
 
+require_relative './protobuf/bluzelle_pb'
+require_relative './protobuf/database_pb'
+
 DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
 DEFAULT_IP = '127.0.0.1'
-DEFAULT_PORT = 51010
+DEFAULT_PORT = 8100 # Emulator port else -> 51010
 
 module Swarmclient
-
   class Communication
 
-    @req_id_limit = 100
+    attr_accessor :transaction_id_limit, :ws_set_timeout
 
-    def initialize endpoint:, port:, uuid:, secure: false
+    @transaction_id_limit = 100
+    @ws_set_timeout = 750 # ms
 
-      @_endpoint = endpoint || DEFAULT_IP
-      @_port = port || DEFAULT_PORT
-      @_uuid = uuid || DEFAULT_UUID
+    def initialize endpoint: DEFAULT_IP, port: DEFAULT_PORT, uuid: DEFAULT_UUID, secure: false
+
+      @_endpoint = endpoint
+      @_port = port
+      @_uuid = uuid
       @_protocol_prefix = secure ? 'wss://' : 'ws://'
 
     end
@@ -27,10 +34,6 @@ module Swarmclient
 
     def read key
       send cmd: 'read', data: { key: key }
-    end
-
-    def read_multiple keys
-      send_multiple cmd: 'read', keys: keys
     end
 
     def update key, value
@@ -51,18 +54,27 @@ module Swarmclient
 
   private
 
-    def send_multiple cmd:, keys:
-      keys.map do |key|
-        res = send cmd: cmd, data: { key: key }
-        Hash[key, res ? res[:value] : nil]
-      end
+    def encoded_protobuf_msg cmd:, data:
+      db_msg = Database_msg.new
+      db_msg.header = Database_header.new db_uuid: @_uuid, transaction_id: rand(@transaction_id_limit).to_i
+      db_msg[cmd] = data
+      Database_msg.encode db_msg
+    end
+
+    def generate_req cmd:, data:
+      protobuf_cmd = Object.const_get "Database_#{cmd}"
+      encoded_msg = encoded_protobuf_msg cmd: cmd, data: protobuf_cmd.new(data)
+      encoded64_msg = Base64.strict_encode64 encoded_msg
+      output = {"bzn-api": "database","msg": encoded64_msg}.to_json.to_s # requires to_s for Js compatibility
+      output
+    end
+
+    def generate_endpoint
+      [@_protocol_prefix, @_endpoint, ':', @_port.to_s].join('')
     end
 
     def send cmd:, data:
-      endpoint, req = [
-        [@_protocol_prefix, @_endpoint, ':', @_port.to_s].join(''),
-        { "bzn-api": "crud", "cmd": cmd, "data": data, "db-uuid": @_uuid, "request-id": rand(@req_id_limit) }
-      ]
+      endpoint, req = [ generate_endpoint, generate_req({ cmd: cmd, data: data }) ]
 
       raw_data = get endpoint: endpoint, req: req
       err = sanitize_req raw_data[0] unless raw_data[0].nil?
@@ -92,6 +104,7 @@ module Swarmclient
       begin
         EventMachine.run do
           ws = WebSocket::Client::Simple.connect endpoint
+          timer = EventMachine::Timer.new(@ws_set_timeout / 1000) { ws.close }
 
           ws.on :message do |msg|
             res = msg.data
@@ -99,18 +112,19 @@ module Swarmclient
           end
 
           ws.on :open do
-            ws.send req.to_json
+            ws.send req
           end
 
           ws.on :close do |e|
+            timer.cancel unless timer.nil?
             EventMachine::stop_event_loop
           end
 
           ws.on :error do |e|
-            err = e
+            err ||= e
+            timer.cancel unless timer.nil?
             EventMachine::stop_event_loop
           end
-
         end
       rescue => e
         err = e
