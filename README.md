@@ -32,7 +32,7 @@ bluzelle = Swarmclient::Communication.new endpoint: '127.0.0.1', port: 51010, uu
 
 Note: The uuid is the unique id of a referenced db hosted in the swarm.
 Generate a new one to generate a new store. The gem will default to:
-8c073d96-7291-11e8-adc0-fa7ae01bbebc' if none is provided.
+'8c073d96-7291-11e8-adc0-fa7ae01bbebc' if none is provided.
 Refer to https://bluzelle.github.io/api/ for more info.
 
 Create New Entry (key-value)
@@ -47,15 +47,6 @@ bluzelle.read 'myKey'
 - Result
 ```
 {:value => "Your Value"}
-```
-
-Read Multiple Keys
-```
-bluzelle.read ['myKey', 'myKey2']
-```
-- Result
-```
-[{:myKey => "Your Value"}, {:myKey2 => nil}]
 ```
 
 Update Key value
@@ -86,10 +77,6 @@ bluzelle.keys
  => {:keys => ["myKey"]}
 ```
 
-## Pubsub (Swarmclient::Pubsub)
-
-For data streaming -> WIP
-
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -102,4 +89,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/wlwanp
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is under the terms of the [Apache License](http://www.apache.org/licenses/).
