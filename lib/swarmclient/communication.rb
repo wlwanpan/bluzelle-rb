@@ -9,7 +9,7 @@ require_relative './protobuf/database_pb'
 
 DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
 DEFAULT_IP = '127.0.0.1'
-DEFAULT_PORT = 8100 # Emulator port else -> 51010
+DEFAULT_PORT = 8100
 
 module Swarmclient
   class Communication
@@ -17,7 +17,7 @@ module Swarmclient
     attr_accessor :transaction_id_limit, :ws_set_timeout
 
     @transaction_id_limit = 100
-    @ws_set_timeout = 750 # ms
+    @ws_set_timeout = 5
 
     def initialize endpoint: DEFAULT_IP, port: DEFAULT_PORT, uuid: DEFAULT_UUID, secure: false
 
@@ -65,8 +65,7 @@ module Swarmclient
       protobuf_cmd = Object.const_get "Database_#{cmd}"
       encoded_msg = encoded_protobuf_msg cmd: cmd, data: protobuf_cmd.new(data)
       encoded64_msg = Base64.strict_encode64 encoded_msg
-      output = {"bzn-api": "database","msg": encoded64_msg}.to_json.to_s # requires to_s for Js compatibility
-      output
+      {"bzn-api": "database","msg": encoded64_msg}.to_json.to_s
     end
 
     def generate_endpoint
@@ -74,28 +73,40 @@ module Swarmclient
     end
 
     def send cmd:, data:
-      endpoint, req = [ generate_endpoint, generate_req({ cmd: cmd, data: data }) ]
+      endpoint, req = [
+        generate_endpoint,
+        generate_req({ cmd: cmd, data: data })
+      ]
 
-      raw_data = get endpoint: endpoint, req: req
-      err = sanitize_req raw_data[0] unless raw_data[0].nil?
-      res = sanitize_req raw_data[1] unless raw_data[1].nil?
+      err, res = get req: req, endpoint: endpoint
+      return err if err
+      raise 'No Response' if res.nil?
 
-      return err unless res
-      case res[:error]
-        when 'NOT_THE_LEADER'
-          @_endpoint, @_port = [
-            res[:data][:'leader-host'].to_s,
-            res[:data][:'leader-port']
-          ]
+      db_response = Database_response.decode res
 
-          return send cmd: cmd, data: data
-        when "RECORD_EXISTS", "RECORD_NOT_FOUND"
-          return res[:error]
-        when nil
-          return res[:data]
-        else
-          return res[:error]
-        end
+      p db_response
+
+      if db_response.redirect
+        puts 'Switching leader_host: ' + db_response.redirect.leader_name
+        @_endpoint, @_port = [
+          db_response.redirect.leader_host,
+          db_response.redirect.leader_port
+        ]
+
+        return send cmd: cmd, data: data
+
+      elsif db_response.resp
+        return db_response.resp.error if db_response.resp.error
+
+        case cmd
+          when 'has' then db_response.resp.has
+          when 'keys' then db_response.resp.keys
+          else db_response.resp.value
+
+      else
+        raise 'Error in Response'
+      end
+
     end
 
     def get req:, endpoint:
@@ -104,7 +115,6 @@ module Swarmclient
       begin
         EventMachine.run do
           ws = WebSocket::Client::Simple.connect endpoint
-          timer = EventMachine::Timer.new(@ws_set_timeout / 1000) { ws.close }
 
           ws.on :message do |msg|
             res = msg.data
@@ -112,30 +122,26 @@ module Swarmclient
           end
 
           ws.on :open do
+            puts req
             ws.send req
           end
 
           ws.on :close do |e|
-            timer.cancel unless timer.nil?
             EventMachine::stop_event_loop
           end
 
           ws.on :error do |e|
             err ||= e
-            timer.cancel unless timer.nil?
             EventMachine::stop_event_loop
           end
+
+          EventMachine::Timer.new(@ws_set_timeout) { ws.close }
         end
       rescue => e
         err = e
       end
 
       return [err, res]
-    end
-
-    def sanitize_req req
-      return unless req.is_a? String
-      eval(req.gsub(/\s+/, ''))
     end
 
   end
