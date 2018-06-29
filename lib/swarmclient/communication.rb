@@ -8,8 +8,8 @@ require_relative './protobuf/bluzelle_pb'
 require_relative './protobuf/database_pb'
 
 DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
-DEFAULT_IP = '127.0.0.1'
-DEFAULT_PORT = 8100
+DEFAULT_IP = '13.78.131.94' # '127.0.0.1'
+DEFAULT_PORT = 51010 # 8100
 
 module Swarmclient
   class Communication
@@ -29,7 +29,7 @@ module Swarmclient
     end
 
     def create key, value
-      send cmd: 'create', data: { key: key, value: value }
+      send cmd: 'create', data: { key: key, value: value.to_s }
     end
 
     def read key
@@ -37,7 +37,7 @@ module Swarmclient
     end
 
     def update key, value
-      send cmd: 'update', data: { key: key, value: value }
+      send cmd: 'update', data: { key: key, value: value.to_s }
     end
 
     def remove key
@@ -54,16 +54,16 @@ module Swarmclient
 
   private
 
-    def encoded_protobuf_msg cmd:, data:
+    def encoded_protobuf_msg cmd:, protobuf_cmd_data:
       db_msg = Database_msg.new
       db_msg.header = Database_header.new db_uuid: @_uuid, transaction_id: rand(@transaction_id_limit).to_i
-      db_msg[cmd] = data
+      db_msg[cmd] = protobuf_cmd_data
       Database_msg.encode db_msg
     end
 
     def generate_req cmd:, data:
       protobuf_cmd = Object.const_get "Database_#{cmd}"
-      encoded_msg = encoded_protobuf_msg cmd: cmd, data: protobuf_cmd.new(data)
+      encoded_msg = encoded_protobuf_msg cmd: cmd, protobuf_cmd_data: protobuf_cmd.new(data)
       encoded64_msg = Base64.strict_encode64 encoded_msg
       {"bzn-api": "database","msg": encoded64_msg}.to_json.to_s
     end
@@ -102,6 +102,7 @@ module Swarmclient
           when 'has' then db_response.resp.has
           when 'keys' then db_response.resp.keys
           else db_response.resp.value
+          end
 
       else
         raise 'Error in Response'
@@ -122,7 +123,6 @@ module Swarmclient
           end
 
           ws.on :open do
-            puts req
             ws.send req
           end
 
@@ -135,7 +135,7 @@ module Swarmclient
             EventMachine::stop_event_loop
           end
 
-          EventMachine::Timer.new(@ws_set_timeout) { ws.close }
+          EventMachine::Timer.new(5) { ws.close } # not accepting @ws_set_timeout, interesting ?
         end
       rescue => e
         err = e
