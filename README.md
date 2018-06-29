@@ -47,7 +47,7 @@ bluzelle.read 'myKey'
 ```
 - Result
 ```
-{:value => "Your Value"}
+=> "Your Value"
 ```
 
 Update Key value
@@ -66,7 +66,7 @@ bluzelle.has 'myKey'
 ```
 - Result
 ```
-=> {:"key-exists" => true}
+=> true
 ```
 
 Read all keys stored
@@ -75,7 +75,16 @@ bluzelle.keys
 ```
 - Result
 ```
- => {:keys => ["myKey"]}
+ => ["myKey1"]
+```
+
+Get size of database
+```
+bluzelle.size
+```
+- Result
+```
+=> 1
 ```
 
 ## Development

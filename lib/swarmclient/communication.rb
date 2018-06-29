@@ -52,20 +52,38 @@ module Swarmclient
       send cmd: 'keys', data: nil
     end
 
+    def size
+      send cmd: 'size', data: nil
+    end
+
   private
 
     def encoded_protobuf_msg cmd:, protobuf_cmd_data:
       db_msg = Database_msg.new
       db_msg.header = Database_header.new db_uuid: @_uuid, transaction_id: rand(@transaction_id_limit).to_i
       db_msg[cmd] = protobuf_cmd_data
-      Database_msg.encode db_msg
+      bzn_msg = Bzn_msg.new db: db_msg
+      Bzn_msg.encode bzn_msg
     end
 
     def generate_req cmd:, data:
-      protobuf_cmd = Object.const_get "Database_#{cmd}"
-      encoded_msg = encoded_protobuf_msg cmd: cmd, protobuf_cmd_data: protobuf_cmd.new(data)
+      protobuf_cmd = cmd_to_protobuf cmd
+      protobuf_cmd_msg = data.nil? ? protobuf_cmd.new : protobuf_cmd.new(data)
+
+      encoded_msg = encoded_protobuf_msg cmd: cmd, protobuf_cmd_data: protobuf_cmd_msg
       encoded64_msg = Base64.strict_encode64 encoded_msg
-      {"bzn-api": "database","msg": encoded64_msg}.to_json.to_s
+
+      {"bzn-api": "database","msg": encoded64_msg}.to_json
+    end
+
+    def cmd_to_protobuf cmd
+      processed_cmd =
+        case cmd
+          when 'keys', 'size' then 'empty'
+          else cmd
+          end
+
+      Object.const_get "Database_#{processed_cmd}"
     end
 
     def generate_endpoint
@@ -84,8 +102,6 @@ module Swarmclient
 
       db_response = Database_response.decode res
 
-      p db_response
-
       if db_response.redirect
         puts 'Switching leader_host: ' + db_response.redirect.leader_name
         @_endpoint, @_port = [
@@ -95,17 +111,16 @@ module Swarmclient
 
         return send cmd: cmd, data: data
 
-      elsif db_response.resp
-        return db_response.resp.error if db_response.resp.error
-
-        case cmd
-          when 'has' then db_response.resp.has
-          when 'keys' then db_response.resp.keys
-          else db_response.resp.value
-          end
+      elsif !db_response.resp.nil? && !db_response.resp.error.empty?
+        return db_response.resp.error
 
       else
-        raise 'Error in Response'
+        case cmd
+        when 'create', 'update', 'delete' then nil
+        when 'read' then db_response.resp.value
+        else db_response.resp[cmd]
+        end
+
       end
 
     end
@@ -135,7 +150,7 @@ module Swarmclient
             EventMachine::stop_event_loop
           end
 
-          EventMachine::Timer.new(5) { ws.close } # not accepting @ws_set_timeout, interesting ?
+          EventMachine::Timer.new(5) { ws.close }
         end
       rescue => e
         err = e
