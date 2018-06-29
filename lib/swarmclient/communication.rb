@@ -8,8 +8,8 @@ require_relative './protobuf/bluzelle_pb'
 require_relative './protobuf/database_pb'
 
 DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
-DEFAULT_IP = '13.78.131.94' # '127.0.0.1'
-DEFAULT_PORT = 51010 # 8100
+DEFAULT_IP = '127.0.0.1'
+DEFAULT_PORT = 8100
 
 module Swarmclient
   class Communication
