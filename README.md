@@ -2,6 +2,8 @@
 
 [![Build Status](https://api.travis-ci.org/wlwanpan/swarmclient-rb.png?branch=master)](https://travis-ci.org/wlwanpan/swarmclient-rb)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Twitter](https://img.shields.io/badge/twitter-@bluzelle-blue.svg?style=flat-square)](https://twitter.com/BluzelleHQ)
+[![Gitter chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg?style=flat-square)](https://gitter.im/bluzelle)
 
 ## Installation
 
