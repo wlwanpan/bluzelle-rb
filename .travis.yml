@@ -10,8 +10,9 @@ addons:
       - protobuf-compiler
 
 before_install:
-  - mkdir -p lib/swarmclient/protobuf
-  - protoc --ruby_out=lib/swarmclient/protobuf --proto_path=proto/proto bluzelle.proto database.proto audit.proto
+  # Uncommented until issue is resolved: https://github.com/google/protobuf/issues/4852
+  # - mkdir -p lib/swarmclient/protobuf
+  # - protoc --ruby_out=lib/swarmclient/protobuf --proto_path=proto/proto bluzelle.proto database.proto audit.proto
   - gem install bundler -v 1.16.0
 
 
