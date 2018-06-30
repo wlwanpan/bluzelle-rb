@@ -1,7 +1,22 @@
 sudo: false
 language: ruby
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - sourceline: 'deb http://ppa.launchpad.net/maarten-fonville/protobuf/ubuntu trusty main'
+    packages:
+      - protobuf-compiler
+
+before_install:
+  - mkdir -p lib/swarmclient/protobuf
+  - protoc --ruby_out=lib/swarmclient/protobuf --proto_path=proto/proto bluzelle.proto database.proto audit.proto
+  - gem install bundler -v 1.16.0
+
+
 rvm:
   - 2.4.2
+
 script:
   - bundle exec rake spec
-before_install: gem install bundler -v 1.16.0
