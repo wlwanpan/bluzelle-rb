@@ -4,7 +4,7 @@ RSpec.describe Swarmclient do
   end
 
   # Default to db_uuid: '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
-  TESTNET_ENDPOINT = '13.78.131.94'
+  TESTNET_ENDPOINT = 'testnet-dev.bluzelle.com'
   TESTNET_PORT = 51010
 
   bluzelle = Swarmclient::Communication.new endpoint: TESTNET_ENDPOINT, port: TESTNET_PORT
@@ -25,24 +25,10 @@ RSpec.describe Swarmclient do
     value = 'Single Entry'
 
     bluzelle.create random_key, value
+    sleep 1
 
     read_value = bluzelle.read(random_key)
     expect(read_value).to eq(value)
-
-    bluzelle.remove random_key
-  end
-
-  it "RECORD_EXISTS: WRITE operation on the same key" do
-    random_key = SecureRandom.uuid
-    value = "Duplicated Record"
-
-    bluzelle.create random_key, value
-    read_value = bluzelle.read random_key
-    expect(read_value).to eq(value)
-
-    bluzelle.create random_key, value
-    read_value = bluzelle.read
-    expect(first_read_value).to eq("RECORD_EXISTS")
 
     bluzelle.remove random_key
   end
