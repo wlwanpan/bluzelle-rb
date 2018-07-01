@@ -2,6 +2,8 @@
 
 [![Build Status](https://api.travis-ci.org/wlwanpan/swarmclient-rb.png?branch=master)](https://travis-ci.org/wlwanpan/swarmclient-rb)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Twitter](https://img.shields.io/badge/twitter-@bluzelle-blue.svg?style=flat-square)](https://twitter.com/BluzelleHQ)
+[![Gitter chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg?style=flat-square)](https://gitter.im/bluzelle)
 
 ## Installation
 
@@ -25,67 +27,82 @@ Or build and install from src:
 ## Communication API (Swarmclient::Communication)
 
 Require and Initialize
-```
+```ruby
 require 'swarmclient'
 
 bluzelle = Swarmclient::Communication.new endpoint: '127.0.0.1', port: 51010, uuid: '80174b53-2dda-49f1-9d6a-6a780d4'
 ```
 
 Note: The uuid is the unique id of a referenced db hosted in the swarm.
-Generate a new one to generate a new store. The gem will default to:
-'8c073d96-7291-11e8-adc0-fa7ae01bbebc' if none is provided.
-Refer to https://bluzelle.github.io/api/ for more info.
+Generate a new one to generate a new database. The gem will default to:
+"8c073d96-7291-11e8-adc0-fa7ae01bbebc" if none is provided.
 
 Create New Entry (key-value)
-```
+```ruby
 bluzelle.create 'myKey', 'Your Value'
+```
+- Result
+```ruby
+=> true
 ```
 
 Read Key
-```
+```ruby
 bluzelle.read 'myKey'
 ```
 - Result
-```
+```ruby
 => "Your Value"
 ```
 
 Update Key value
-```
+```ruby
 bluzelle.update 'myKey', 'New Value'
+```
+- Result
+```ruby
+=> true
 ```
 
 Remove Key
-```
+```ruby
 bluzelle.remove 'myKey'
+```
+- Result
+```ruby
+=> true
 ```
 
 Check if key exist
-```
+```ruby
 bluzelle.has 'myKey'
 ```
 - Result
-```
+```ruby
 => true
 ```
 
 Read all keys stored
-```
+```ruby
 bluzelle.keys
 ```
 - Result
-```
- => ["myKey1"]
+```ruby
+ => ["myKey"]
 ```
 
 Get size of database
-```
+```ruby
 bluzelle.size
 ```
 - Result
-```
+```ruby
 => 1
 ```
+
+## Reference
+
+Visit the official bluzelle [documentation](https://bluzelle.github.io/api/)
 
 ## Development
 

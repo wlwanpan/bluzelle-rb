@@ -4,12 +4,13 @@
 require 'google/protobuf'
 
 require_relative './database_pb'
-
+require_relative './audit_pb'
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_message "bzn_msg" do
     oneof :msg do
       optional :db, :message, 10, "database_msg"
       optional :json, :string, 11
+      optional :audit_message, :message, 12, "audit_message"
     end
   end
 end
