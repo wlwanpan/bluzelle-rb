@@ -1,10 +1,13 @@
 require 'websocket-client-simple'
 require 'eventmachine'
 
+require_relative './constants'
+
 module Swarmclient
   module Connection
+    include Constants
 
-    private
+  private
 
     def connect_and_send req:, endpoint:
       res, err = [nil, nil]
@@ -31,7 +34,7 @@ module Swarmclient
             EventMachine::stop_event_loop
           end
 
-          EventMachine::Timer.new(5) { ws.close }
+          EventMachine::Timer.new(CONNECTION_TIMEOUT_LIMIT) { ws.close }
         end
       rescue => e
         err = e

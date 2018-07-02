@@ -1,20 +1,13 @@
 require 'base64'
 require 'json'
 
+require_relative './constants'
 require_relative './proto_serializer'
 require_relative './connection'
 
-##
-# Temporary redirect attempt limit.
-# Track discussion on: https://gitter.im/bluzelle/opensource
-MAX_REDIRECT_ATTEMPT = 3
-
-DEFAULT_UUID = '8c073d96-7291-11e8-adc0-fa7ae01bbebc'
-DEFAULT_IP = '127.0.0.1'
-DEFAULT_PORT = 8100
-
 module Swarmclient
   class Communication
+    include Constants
     include ProtoSerializer
     include Connection
 
@@ -91,13 +84,13 @@ module Swarmclient
 
         return send_request options
 
-      elsif !db_response.resp.nil? && !db_response.resp.error.empty?
+      elsif !(db_response.resp.nil? || db_response.resp.error.empty?)
         raise db_response.resp.error
 
       else
         @_redirect_attempt = 0
-        return case options[:cmd]
-        when 'create', 'update', 'delete' then true
+        case options[:cmd]
+          when 'create', 'update', 'delete' then true
           when 'read' then db_response.resp.value
           else db_response.resp[options[:cmd]]
         end

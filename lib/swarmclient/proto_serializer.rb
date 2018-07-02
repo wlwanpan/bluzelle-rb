@@ -1,15 +1,12 @@
 require 'google/protobuf'
 
+require_relative './constants'
 require_relative './protobuf/bluzelle_pb'
 require_relative './protobuf/database_pb'
 
-##
-# Not yet confirmed on the randomness of db_msg.header.transaction_id
-# https://github.com/wlwanpan/swarmclient-rb/issues/4
-TRANSATION_ID_UPPER_LIMIT = 1000
-
 module Swarmclient
   module ProtoSerializer
+    include Constants
 
   private
 
