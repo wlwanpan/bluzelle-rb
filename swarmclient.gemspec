@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Warren"]
   spec.email         = ["wlwanpan@uwaterloo.ca"]
 
-  spec.summary       = %q{A gem for the bluzele SwarmDB}
+  spec.summary       = %q{A gem for the CRUD operations on the bluzelle SwarmDB}
   # spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage      = "https://github.com/wlwanpan/swarmclient-rb"
   spec.license       = "MIT"
